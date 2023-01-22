@@ -50,7 +50,7 @@ function drawStars(ctx, coords, r) {
   }
 }
 
-module.exports = {
+export default {
   drawSpeedometr,
   drawStars,
   fillCanvas,

@@ -14,7 +14,7 @@ const stylesHandler = 'style-loader';
 
 const config = {
   entry: {
-    index: ['./src/main.js', './src/math.js', './src/draw/draw.js', './src/draw/core.js'],
+    index: ['./src/main.js', './src/math.js', './src/draw/core.js', './src/draw/draw.js'],
     style: './src/main.css'
   },
   output: {
@@ -38,7 +38,6 @@ const config = {
       },
       {
         test: /\.css$/i,
-        use: [stylesHandler, 'css-loader'],
         use: [
           devMode ? "style-loader" : MiniCssExtractPlugin.loader,
           "css-loader",
