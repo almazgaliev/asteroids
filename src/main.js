@@ -1,6 +1,6 @@
 //@ts-nocheck
 
-import * as Draw from "./draw/draw.js";
+import {default as Draw} from "./draw/draw.js";
 import * as MyMath from "./math.js";
 
 class StarField {
