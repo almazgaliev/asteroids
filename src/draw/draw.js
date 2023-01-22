@@ -6,18 +6,12 @@ import {
   fillPolygon
 } from "./core.js";
 
+
 function drawSpeedometr(ctx, speedF, speedometrPos, speedometrA, speedometrB) {
-
-  // reverse green and blue to get "lerp" from white to red
-  let greenBlue = Math.floor((255 - speedF ** 3 * 255)).toString(16);
-  while (greenBlue.length < 2)
-    greenBlue = '0' + greenBlue;
-
-  ctx.fillStyle = "#ff" + greenBlue + greenBlue;
-
+  let r = 50;
   // добавляем случайный эффект тряски на высоких скоростях
-  let shakeX = Math.random() * speedF ** 3 * 10 - 5;
-  let shakeY = Math.random() * speedF ** 3 * 10 - 5;
+  let shakeX = Math.random() * speedF ** 3 * 6 - 3;
+  let shakeY = Math.random() * speedF ** 3 * 6 - 3;
   let speedometrX = speedometrPos[0] + shakeX;
   let speedometrY = speedometrPos[1] + shakeY;
 
@@ -27,9 +21,9 @@ function drawSpeedometr(ctx, speedF, speedometrPos, speedometrA, speedometrB) {
   ctx.arc(
     speedometrX,
     speedometrY,
-    40,
+    r,
     MyMath.degToRad(speedometrA),
-    MyMath.degToRad(Math.random() * speedF * 15 + speedometrA + speedF * (speedometrB - 15)) // так же добавляем тряску к стрелке спидометра
+    MyMath.degToRad(Math.random() * speedF ** 3 * 10 + speedometrA + speedF * (speedometrB - 10)) // так же добавляем тряску к стрелке спидометра
   );
   ctx.lineTo(speedometrX, speedometrY);
   ctx.fill();
@@ -40,7 +34,7 @@ function drawSpeedometr(ctx, speedF, speedometrPos, speedometrA, speedometrB) {
   ctx.arc(
     speedometrX,
     speedometrY,
-    40,
+    r,
     MyMath.degToRad(speedometrA),
     MyMath.degToRad(speedometrA + speedometrB)
   );
@@ -48,8 +42,17 @@ function drawSpeedometr(ctx, speedF, speedometrPos, speedometrA, speedometrB) {
   ctx.stroke();
 }
 
+function drawStars(ctx, coords, r) {
+  // console.log("");
+  for (let i = 0; i < coords.length; i++) {
+    // console.log(coords[i]);
+    fillCircle(ctx, coords[i][0], coords[i][1], r);
+  }
+}
+
 module.exports = {
   drawSpeedometr,
+  drawStars,
   fillCanvas,
   fillCircle,
   strokePolygon,

@@ -14,7 +14,7 @@ const stylesHandler = 'style-loader';
 
 const config = {
   entry: {
-    index: ['./src/main.js', './src/math.js', './src/draw.js'],
+    index: ['./src/main.js', './src/math.js', './src/draw/draw.js', './src/draw/core.js'],
     style: './src/main.css'
   },
   output: {

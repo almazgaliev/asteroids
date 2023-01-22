@@ -1,4 +1,41 @@
 
+
+/**
+ * создает ILERP функцию
+ * @param {number} a from
+ * @param {number} b to
+ * @returns {(x: number) => number} функция ILERP
+ */
+export function getILERP(a, b) {
+  return x => (x - a) / (b - a);
+}
+
+/**
+ * создает LERP функцию
+ * @param {number} a from
+ * @param {number} b to
+ * @returns {(x: number) => number} функция LERP
+ */
+export function getLERP(a, b) {
+  return t => (1 - t) * a + t * b;
+}
+
+/**
+ * создает remap функцию
+ * @param {number} a from a
+ * @param {number} b from b
+ * @param {number} c to a
+ * @param {number} d to b
+ * @returns {(x: number) => number} функция remap
+ */
+export function getRemap(a, b, c, d) {
+  function remap(x) {
+    let t = (x - a) / (b - a);
+    return (1 - t) * c + t * d;
+  }
+  return remap;
+}
+
 /**
  * переводит градусы в радианы
  * @param {number} angleDeg угол в градусах
@@ -20,6 +57,20 @@ export function moveMatrix(vector) {
     [0, 0, 1],
   ];
 }
+
+/**
+ * матрица масштаба
+ * @param {number[]} vector вектор масштаба
+ * @returns матрица сдвига
+ */
+export function scaleMatrix(vector) {
+  return [
+    [vector[0], 0, 0],
+    [0, vector[1], 0],
+    [0, 0, 1],
+  ];
+}
+
 
 /**
  * матрица поворота
@@ -96,10 +147,24 @@ export function normalize(vector) {
  * @param {number[]} vector результат умножения
  * @param {number} scalar 
  */
-export function mulMut(vector, scalar) {
+export function multiplyVSMut(vector, scalar) {
   for (let i = 0; i < vector.length; i++) {
     vector[i] *= scalar;
   }
+}
+
+/**
+ * скалярное произведение векторов
+ * @param {number[]} vector1
+ * @param {number[]} vector2
+ * @returns {number} скалярное произведение векторов
+ */
+export function multiplyVV(vector1, vector2) {
+  let res = 0;
+  for (let i = 0; i < vector1.length; i++) {
+    res += vector1[i] * vector2[i];
+  }
+  return res;
 }
 
 /**
@@ -108,7 +173,7 @@ export function mulMut(vector, scalar) {
  * @param {number} scalar 
  * @returns {number[]} произведение вектора на скаляр
  */
-export function mul(vector, scalar) {
+export function multiplyVS(vector, scalar) {
   let resVec = [];
   for (let i = 0; i < vector.length; i++) {
     resVec.push(vector[i] * scalar);
@@ -118,8 +183,8 @@ export function mul(vector, scalar) {
 
 /**
  * вычисляет умножение матрицы на вектор
- * @param {number[][]} matrix 
- * @param {number[]} vector 
+ * @param {number[][]} matrix
+ * @param {number[]} vector
  * @returns {number[]}
  */
 export function multiplyMV(matrix, vector) {

@@ -1,6 +1,6 @@
 import * as esbuild from 'esbuild';
 
-let devBuild = false;
+let devBuild = true;
 
 await esbuild.build({
   entryPoints: ['src/main.js', 'src/main.css', 'src/index.html'],
