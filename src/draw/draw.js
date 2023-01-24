@@ -1,13 +1,9 @@
 import * as MyMath from "../math.js";
-import {
-  fillCanvas,
-  fillCircle,
-  strokePolygon,
-  fillPolygon
-} from "./core.js";
+import { fillCircle } from "./core.js";
 
+export * from "./core.js";
 
-function drawSpeedometer(ctx, speedF, speedometer) {
+export function drawSpeedometer(ctx, speedF, speedometer) {
   // добавляем случайный эффект тряски на высоких скоростях
   let shakeX = Math.random() * speedF ** 3 * 6 - 3;
   let shakeY = Math.random() * speedF ** 3 * 6 - 3;
@@ -41,17 +37,8 @@ function drawSpeedometer(ctx, speedF, speedometer) {
   ctx.stroke();
 }
 
-function drawStars(ctx, coords, r) {
+export function drawStars(ctx, coords, r) {
   for (let i = 0; i < coords.length; i++) {
     fillCircle(ctx, coords[i][0], coords[i][1], r);
   }
 }
-
-export default {
-  drawSpeedometer,
-  drawStars,
-  fillCanvas,
-  fillCircle,
-  strokePolygon,
-  fillPolygon,
-};
