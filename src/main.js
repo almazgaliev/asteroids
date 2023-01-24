@@ -4,7 +4,7 @@ import { default as Draw } from "./draw/draw.js";
 import * as MyMath from "./math.js";
 import { Spaceship } from "./spaceship.js";
 import { StarField } from "./stars.js";
-// import AsteroidField from "./asteroids.js";
+import { AsteroidField } from "./asteroids.js";
 import { Speedometer } from "./ui/speedometer.js";
 
 
@@ -61,6 +61,20 @@ let heightE = globalGameState.heightE;
 let reverseByte = MyMath.getLERP(255, 0);
 let speedometer = new Speedometer([globalGameState.width - 40, globalGameState.height - 30], 160, 140);
 
+let asteroids = new AsteroidField(20, 12);
+
+// debugger;
+
+for (let i = 0; i < asteroids.coords.length; i++) {
+  let tr = MyMath.moveMatrix([Math.random() * widthE, Math.random() * heightE]);
+  for (let j = 0; j < asteroids.coords[i].length; j++) {
+    asteroids.coords[i][j] = MyMath.multiplyMV(tr, asteroids.coords[i][j]);
+  }
+}
+
+// console.log(asteroids);
+
+
 let player = new Spaceship([widthE / 2, heightE / 2], 300, 200, 450, true);
 let starFields = [
   new StarField(50, 0.5, 1.0, widthE, heightE), // 50000 is laggy on ff
@@ -106,7 +120,11 @@ ctx.font = "24px Chakra Petch";
     Draw.drawStars(ctx, starFields[i].coords, starFields[i].radius);
   }
 
-
+  ctx.lineWidth = 1.5;
+  for (let i = 0; i < asteroids.coords.length; i++) {
+    Draw.strokePolygon(ctx, asteroids.coords[i]);
+  }
+  
   ctx.lineWidth = 3;
   Draw.strokePolygon(ctx, player.body);
   ctx.lineWidth = 1.5;
