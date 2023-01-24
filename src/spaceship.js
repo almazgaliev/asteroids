@@ -10,18 +10,19 @@ export class Spaceship {
    * @param {boolean} movable должен ли игрок перемещаться по экрану
    */
   constructor(startPos, acceleration, rotateSpeed, maxSpeed, movable = false) {
-    this.midPosition = [...startPos];
+    this.moveMatrix = MyMath.moveMatrix(startPos);
+
     this.moveMid = movable ? function (interval, gameState) {
 
       let speed = MyMath.multiplyVS(this.velocityNormal, this.currentSpeed); // speed
 
       // move mid
-      this.midPosition[0] += speed[0] * interval;
-      this.midPosition[1] += speed[1] * interval;
+      this.midX += speed[0] * interval;
+      this.midY += speed[1] * interval;
 
       // cycle mid coords when out of canvas borders
-      this.midPosition[0] = ((this.midPosition[0] + gameState.outBX / 2) % gameState.widthE + gameState.widthE) % gameState.widthE - gameState.outBX / 2;
-      this.midPosition[1] = ((this.midPosition[1] + gameState.outBY / 2) % gameState.heightE + gameState.heightE) % gameState.heightE - gameState.outBY / 2;
+      this.midX = ((this.midX + gameState.outBX / 2) % gameState.widthE + gameState.widthE) % gameState.widthE - gameState.outBX / 2;
+      this.midY = ((this.midY + gameState.outBY / 2) % gameState.heightE + gameState.heightE) % gameState.heightE - gameState.outBY / 2;
     } : () => { };
 
     this.acceleration = acceleration;
@@ -93,10 +94,26 @@ export class Spaceship {
 
   get transformMatrix() {
     return MyMath.multiplyMM(
-      MyMath.moveMatrix(this.midPosition),
+      this.moveMatrix,
       this.rotateMatrix,
     );
   };
+
+  get midX() {
+    return this.moveMatrix[0][2];
+  }
+
+  get midY() {
+    return this.moveMatrix[1][2];
+  }
+
+  set midX(val) {
+    this.moveMatrix[0][2] = val;
+  }
+
+  set midY(val) {
+    this.moveMatrix[1][2] = val;
+  }
 
   update(interval, gameState) {
     // обработать нажатия клавиш

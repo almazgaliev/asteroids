@@ -61,7 +61,7 @@ let heightE = globalGameState.heightE;
 let reverseByte = MyMath.getLERP(255, 0);
 let speedometer = new Speedometer([globalGameState.width - 40, globalGameState.height - 30], 160, 140);
 
-let asteroids = new AsteroidField(20, 12);
+let asteroids = new AsteroidField(20);
 
 // debugger;
 
