@@ -56,13 +56,22 @@ function createAsteroidCoords() {
   return res;
 }
 
-export class AsteroidField {
+export class AsteroidPool {
   constructor(width, height, amount) {
-    this._coords = [[], [], []];
+    this._coords = [
+      [], // big asteroids
+      [], // medium asteroids
+      []  // small asteroids
+    ];
+    this.coords = [
+      [],
+      [],
+      []
+    ];
+
     for (let ix = 0; ix < amount; ix++) {
       this._coords[0].push(...createAsteroidCoords());
     }
-    this.coords = [[], [], []];
 
     this.sum = amount * n;
     this.free_space = 0;
