@@ -7,10 +7,14 @@ export class Spaceship {
    * @param {number} acceleration ускорение
    * @param {number} rotateSpeed скорость поворота
    * @param {number} maxSpeed максимальная скорость движения
+   * @param {number} shotsPerSec количество выстрелов в секунду
    * @param {boolean} movable должен ли игрок перемещаться по экрану
    */
-  constructor(startPos, acceleration, rotateSpeed, maxSpeed, movable = false) {
+  constructor(startPos, acceleration, rotateSpeed, maxSpeed, shotsPerSec = 3, movable = false) {
     this.moveMatrix = MyMath.moveMatrix(startPos);
+
+    this.rechargeTime = 1 / shotsPerSec;
+    this.currentRechargeTime = 0;
 
     this.moveMid = movable ? function (interval, gameState) {
 
@@ -28,6 +32,7 @@ export class Spaceship {
     this.acceleration = acceleration;
     this.rotateSpeed = rotateSpeed;
     this.maxSpeed = maxSpeed;
+    this.bulletSpeed = maxSpeed * 1.5;
     this.speedRemap = MyMath.getLERP(0.8, 1.6);
     this.currentSpeed = 0;
     this.velocityNormal = [0, -1, 0];
@@ -115,17 +120,22 @@ export class Spaceship {
     this.moveMatrix[1][2] = val;
   }
 
-  update(interval, gameState) {
-    // обработать нажатия клавиш
-    if (gameState.keys["KeyA"])
-      this.rotate(-this.rotateSpeed, interval);
-    if (gameState.keys["KeyD"])
-      this.rotate(this.rotateSpeed, interval);
-    if (gameState.keys["KeyW"])
-      this.accelerate(interval);
-    if (gameState.keys["Space"]) {
-      // this.shoot();
+  shoot() {
+    if (this.currentRechargeTime <= 0) {
+      this.currentRechargeTime = this.rechargeTime;
+
+      // скорость корабля(вектор)
+      let velocity = MyMath.multiplyVS(this.velocityNormal, this.currentSpeed);
+
+      // скорость снаряда(вектор)
+      MyMath.addMut(velocity, MyMath.multiplyVS(this.forwardVector, this.bulletSpeed));
+
+      return { coord: [this.midX, this.midY], vector: velocity };
     }
+  }
+
+  update(interval, gameState) {
+    this.currentRechargeTime -= this.currentRechargeTime > 0 ? interval : 0;
 
     this.moveMid(interval, gameState);
 

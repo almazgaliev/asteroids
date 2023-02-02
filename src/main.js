@@ -4,7 +4,8 @@ import * as Draw from "./draw/draw.js";
 import * as MyMath from "./math.js";
 import { Spaceship } from "./spaceship.js";
 import { StarField } from "./stars.js";
-import { AsteroidField } from "./asteroids.js";
+import { AsteroidPool } from "./asteroids.js";
+import { BulletPool } from "./bullet.js";
 import { Speedometer } from "./ui/speedometer.js";
 
 
@@ -12,7 +13,8 @@ function createKeyHandlers(gameState) {
   function keyDownListen(event) {
     switch (event.code) {
       case "KeyW":
-        gameState.keys["KeyW"] = true;
+      case "KeyL":
+        gameState.keys[event.code] = true;
         break;
       case "KeyA":
         gameState.keys["KeyA"] = true;
@@ -28,6 +30,7 @@ function createKeyHandlers(gameState) {
   function keyUpListen(event) {
     switch (event.code) {
       case "KeyW":
+      case "KeyL":
       case "KeyA":
       case "KeyD":
         gameState.keys[event.code] = false;
@@ -50,7 +53,7 @@ let globalGameState = {
     "KeyW": false,
     "KeyA": false,
     "KeyD": false,
-    "Space": false,
+    "KeyL": false,
   },
   prevT: undefined,
   score: 0,
@@ -59,13 +62,14 @@ let globalGameState = {
 let widthE = globalGameState.widthE;
 let heightE = globalGameState.heightE;
 
-let reverseByte = MyMath.getLERP(255, 0);
 let speedometer = new Speedometer([globalGameState.width - 40, globalGameState.height - 30], 160, 140);
 
-let asteroids = new AsteroidField(widthE, heightE, 24);
+let asteroids = new AsteroidPool(widthE, heightE, 24);
 
+let bullets = new BulletPool();
 
-let player = new Spaceship([widthE / 2, heightE / 2], 250, 150, 350, true);
+let player = new Spaceship([widthE / 2, heightE / 2], 250, 200, 300, 5, true);
+
 let starFields = [
   new StarField(50, 0.5, 1.0, widthE, heightE), // 50000 is laggy on ff
   new StarField(150, 0.4, 0.8, widthE, heightE),
@@ -92,10 +96,26 @@ ctx.font = "24px Chakra Petch";
   let interval = ((timestamp - globalGameState.prevT) * 0.001) || 0;
   globalGameState.prevT = timestamp;
 
+  // handle keys
+  if (globalGameState.keys["KeyA"])
+    player.rotate(-player.rotateSpeed, interval);
+  if (globalGameState.keys["KeyD"])
+    player.rotate(player.rotateSpeed, interval);
+  if (globalGameState.keys["KeyW"])
+    player.accelerate(interval);
+  if (globalGameState.keys["KeyL"]) {
+    let a = player.shoot();
+    if (a !== undefined)
+      bullets.push(a.coord, a.vector);
+  }
+
   // update asteroids
   asteroids.update(interval, globalGameState);
+
   // update player
   player.update(interval, globalGameState);
+
+  bullets.update(interval, globalGameState);
 
   for (let i = 0; i < starFields.length; i++) {
     starFields[i].update(MyMath.multiplyVS(player.velocityNormal, -(starFields[i].speedCoef ** 3) * player.currentSpeed * interval), globalGameState);
@@ -109,58 +129,29 @@ ctx.font = "24px Chakra Petch";
   Draw.fillCanvas(ctx, canvas);
 
   // draw stars
-  ctx.fillStyle = "#fff";
   for (let i = 0; i < starFields.length; i++) {
-    Draw.drawStars(ctx, starFields[i].coords, starFields[i].radius);
+    Draw.drawStarField(ctx, starFields[i]);
   }
 
-  // draw asteroids
+  Draw.drawAsteroids(ctx, asteroids);
 
-  for (let a of asteroids.asteroids) {
-    ctx.fillStyle = "#000";
-    Draw.fillPolygon(ctx, asteroids.coords[0].slice(a.a, a.b));
-    ctx.fillStyle = "#fff";
-    Draw.strokePolygon(ctx, asteroids.coords[0].slice(a.a, a.b));
+  for (const bullet of bullets) {
+    Draw.drawBullet(ctx, bullet.coords);
   }
 
-  // draw player
+  Draw.drawPlayer(ctx, player, globalGameState);
 
-  ctx.fillStyle = "#000";
-  Draw.fillPolygon(ctx, player.body);
+  Draw.drawSpeedometer(ctx, player.speedF, speedometer);
 
-  ctx.fillStyle = "#fff";
-  Draw.strokePolygon(ctx, player.body);
-
-
-  if (globalGameState.keys["KeyW"]) {
-    ctx.fillStyle = "#fff";
-    Draw.fillPolygon(ctx, player.flame);
-  }
-
-  // draw ui
-  let speedF = player.speedF;
-
-  // reverse green and blue to get "lerp" from white to red
-  let greenBlue = Math.floor(reverseByte(speedF ** 3));
-  let speedometerStyle = `rgb(255,${greenBlue},${greenBlue})`;
-  ctx.strokeStyle = speedometerStyle;
-  ctx.fillStyle = speedometerStyle;
-
-  Draw.drawSpeedometer(ctx, speedF, speedometer);
-
-  ctx.strokeStyle = "#fff";
-  ctx.fillStyle = "#fff";
-
-  ctx.fillText(`Score: ${globalGameState.score}`, 20, 40);
+  Draw.drawScore(ctx, globalGameState.score);
 
   requestAnimationFrame(drawFrame);
 })();
 
-
-// TODO implement shooting
 // TODO implement collisions
 // TODO finish implementing asteroids
 // TODO implement counting score
+// TODO implement settings for keybinds
 // TODO reimplement using ctx.translate ctx.rotate ctx.scale and use createPattern for stars
 // TODO add aliens
 
