@@ -1,22 +1,32 @@
 //@ts-nocheck
 import * as MyMath from "./math.js";
 
-let rMin = 10;
-let rMax = 30;
+let rMin = 20;
+let rMax = 40;
+let rD = 8;
 
-let dMin = 40;
-let dMax = 80;
+
+export {
+  rMax,
+  rMin
+};
+
+let speedMin = 40;
+let speedMax = 80;
 let n = 24;
 
+let sizeToRadius = MyMath.getRemap(2, 0, rMin, rMax);
+
 class Asteroid {
-  constructor(ix, pos, size = 0) {
+  constructor(hp, ix, pos, size = 0) {
     this.size = size;
-    this.a = ix * n;
-    this.b = (ix + 1) * n;
-    this.hp = 3;
+    let n1 = n / (2 ** size);
+    this.a = ix * n1;
+    this.b = (ix + 1) * n1;
+    this.hp = hp;
 
     let phi = Math.random() * 2 * Math.PI;
-    this.currentSpeed = MyMath.multiplyVS([Math.cos(phi), -Math.sin(phi)], Math.random() * dMax + dMin);
+    this.currentSpeed = MyMath.multiplyVS([Math.cos(phi), -Math.sin(phi)], Math.random() * speedMax + speedMin);
     this.moveMatrix = MyMath.moveMatrix(pos);
   }
   moveMid(interval, gameState) {
@@ -36,6 +46,10 @@ class Asteroid {
     return this.moveMatrix[1][2];
   }
 
+  get pos() {
+    return [this.moveMatrix[0][2], this.moveMatrix[1][2]];
+  }
+
   set midX(val) {
     this.moveMatrix[0][2] = val;
   }
@@ -46,11 +60,12 @@ class Asteroid {
 
 }
 
-function createAsteroidCoords() {
+function createAsteroidCoords(size = 0) {
   let res = [];
-  for (let i = 0; i < n; i++) {
-    let phi = (i * 2 * Math.PI) / n;
-    let r = Math.random() * rMin + rMax;
+  let n1 = n / (2 ** size);
+  for (let i = 0; i < n1; i++) {
+    let phi = (i * 2 * Math.PI) / n1;
+    let r = Math.random() * rD + sizeToRadius(size);
     res.push([Math.cos(phi) * r, -Math.sin(phi) * r, 1]);
   };
   return res;
@@ -80,7 +95,7 @@ export class AsteroidPool {
     this.asteroids = [];
     for (let ix = 0; ix < amount; ix++) {
       // let pos = [Math.random() * width, Math.random() * height];
-      let a = new Asteroid(ix, [0, 0]);
+      let a = new Asteroid(3, ix, [0, 0]);
       this.asteroids.push(a);
       for (let i = a.a; i < a.b; i++) {
         this.coords[0].push(MyMath.multiplyMV(a.moveMatrix, this._coords[0][i]));
@@ -88,19 +103,23 @@ export class AsteroidPool {
     }
   }
 
-  update(interval, gameState) {
-    for (const a of this.asteroids) {
-      // let moveMatrix = MyMath.moveMatrix(MyMath.multiplyVS(a.currentSpeed, interval));
-      // debugger;
-      a.moveMid(interval, gameState);
-      for (let i = a.a; i < a.b; i++) {
-        // debugger;
-        this.coords[a.size][i] = MyMath.multiplyMV(a.moveMatrix, this._coords[a.size][i]);
-      }
+  addNew(size, pos) {
+    let ix = this._coords[size].length * (2 ** size) / n; // FIX
+    let a = new Asteroid(3 - size, ix, pos, size);
+    this.asteroids.push(a);
+
+    this._coords[size].push(...createAsteroidCoords(size));
+    for (let i = a.a; i < a.b; i++) {
+      this.coords[size].push(MyMath.multiplyMV(a.moveMatrix, this._coords[size][i]));
     }
   }
 
-  handleCollision(obj) {
-
+  update(interval, gameState) {
+    for (const a of this.asteroids) {
+      a.moveMid(interval, gameState);
+      for (let i = a.a; i < a.b; i++) {
+        this.coords[a.size][i] = MyMath.multiplyMV(a.moveMatrix, this._coords[a.size][i]);
+      }
+    }
   }
 }

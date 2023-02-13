@@ -75,9 +75,9 @@ export function drawPlayer(ctx, player, gameState) {
 export function drawAsteroids(ctx, asteroids) {
   for (let a of asteroids.asteroids) {
     ctx.fillStyle = "#000";
-    fillPolygon(ctx, asteroids.coords[0].slice(a.a, a.b));
+    fillPolygon(ctx, asteroids.coords[a.size].slice(a.a, a.b));
     ctx.fillStyle = "#fff";
-    strokePolygon(ctx, asteroids.coords[0].slice(a.a, a.b));
+    strokePolygon(ctx, asteroids.coords[a.size].slice(a.a, a.b));
   }
 }
 

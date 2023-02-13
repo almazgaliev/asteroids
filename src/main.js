@@ -4,7 +4,7 @@ import * as Draw from "./draw/draw.js";
 import * as MyMath from "./math.js";
 import { Spaceship } from "./spaceship.js";
 import { StarField } from "./stars.js";
-import { AsteroidPool } from "./asteroids.js";
+import { AsteroidPool, rMax, rMin } from "./asteroids.js";
 import { BulletPool } from "./bullet.js";
 import { Speedometer } from "./ui/speedometer.js";
 
@@ -64,11 +64,12 @@ let heightE = globalGameState.heightE;
 
 let speedometer = new Speedometer([globalGameState.width - 40, globalGameState.height - 30], 160, 140);
 
-let asteroids = new AsteroidPool(widthE, heightE, 24);
+let asteroidField = new AsteroidPool(widthE, heightE, 16);
 
+console.log(asteroidField);
 let bullets = new BulletPool();
 
-let player = new Spaceship([widthE / 2, heightE / 2], 250, 200, 300, 5, true);
+let player = new Spaceship([widthE / 2, heightE / 2], 250, 200, 300, 3, true);
 
 let starFields = [
   new StarField(50, 0.5, 1.0, widthE, heightE), // 50000 is laggy on ff
@@ -109,8 +110,48 @@ ctx.font = "24px Chakra Petch";
       bullets.push(a.coord, a.vector);
   }
 
+
+  // игрок астероид // FIX add normal collisisons
+
+  for (const a of asteroidField.asteroids) {
+    let r = (2 - a.size) * (rMax - rMin) + rMin;
+    let p = MyMath.magnitude([a.midX - player.midX, a.midY - player.midY]);
+    if (p - r < 0) {
+      alert("You Lost");
+      return;
+    }
+  }
+
+  // пули астероид
+  for (const bullet of bullets) {
+    for (const a of asteroidField.asteroids) {
+      let r = (2 - a.size) * (rMax - rMin) + rMin;
+      let p = MyMath.magnitude([a.midX - bullet.coords[0], a.midY - bullet.coords[1]]);
+      if (p - r < 0) { // попали
+
+
+        bullets.remove(bullet.id);
+        a.hp--;
+        if (a.hp == 0) {
+          // add score
+          globalGameState.score += Math.round(50 * (3 - a.size) + 500 * player.speedF ** 2);
+          asteroidField.asteroids = asteroidField.asteroids.filter(x => x !== a);
+          if (a.size != 2) {
+            let p = a.pos;
+            asteroidField.addNew(a.size + 1, p);
+            asteroidField.addNew(a.size + 1, p);
+          }
+          for (let i = a.a; i < a.b; i++) {
+            delete asteroidField._coords[a.size][i];
+            delete asteroidField.coords[a.size][i];
+          }
+        }
+      }
+    }
+  }
+
   // update asteroids
-  asteroids.update(interval, globalGameState);
+  asteroidField.update(interval, globalGameState);
 
   // update player
   player.update(interval, globalGameState);
@@ -133,7 +174,7 @@ ctx.font = "24px Chakra Petch";
     Draw.drawStarField(ctx, starFields[i]);
   }
 
-  Draw.drawAsteroids(ctx, asteroids);
+  Draw.drawAsteroids(ctx, asteroidField);
 
   for (const bullet of bullets) {
     Draw.drawBullet(ctx, bullet.coords);
@@ -148,9 +189,8 @@ ctx.font = "24px Chakra Petch";
   requestAnimationFrame(drawFrame);
 })();
 
-// TODO implement collisions
-// TODO finish implementing asteroids
-// TODO implement counting score
+// FIX bullet bug
+// TODO finish implementing asteroids (генерация новых астероидов)
 // TODO implement settings for keybinds
 // TODO reimplement using ctx.translate ctx.rotate ctx.scale and use createPattern for stars
 // TODO add aliens
