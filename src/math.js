@@ -1,5 +1,4 @@
 
-
 /**
  * создает ILERP функцию
  * @param {number} a from
@@ -71,7 +70,6 @@ export function scaleMatrix(vector) {
   ];
 }
 
-
 /**
  * матрица поворота
  * @param {number} angle угол поворота **В РАДИАНАХ**
@@ -126,7 +124,6 @@ export function normalizeMut(vector) {
     vector[i] /= mag;
   }
 }
-
 
 /**
  * нормализирует вектор
@@ -198,6 +195,7 @@ export function multiplyMV(matrix, vector) {
   }
   return resVec;
 }
+
 /**
  * вычисляет сумму векторов (**на месте**)
  * @param {number[]} vector1 результат сложения
@@ -222,6 +220,7 @@ export function add(vector1, vector2) {
   }
   return resVec;
 }
+
 /**
  * тривиальное умножение матриц (**на месте**)
  * @param {number[][]} matrix1
@@ -258,4 +257,3 @@ export function multiplyMM(matrix1, matrix2) {
   }
   return res;
 }
-

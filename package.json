@@ -17,7 +17,7 @@
   "name": "asteroids",
   "scripts": {
     "buildw": "webpack --mode=production --node-env=production",
-    "buildw:dev": "webpack --mode=development",
+    "buildw:dev": "webpack --mode=development --node-env=development",
     "buildw:prod": "webpack --mode=production --node-env=production",
     "watch": "webpack --watch"
   }
