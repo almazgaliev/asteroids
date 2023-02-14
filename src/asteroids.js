@@ -4,23 +4,23 @@ import * as MyMath from "./math.js";
 let rMin = 20;
 let rMax = 40;
 let rD = 8;
-
+let speedMin = 40;
+let speedMax = 80;
+let maxPointAmount = 24;
 
 export {
   rMax,
-  rMin
+  rMin,
+  maxPointAmount
 };
 
-let speedMin = 40;
-let speedMax = 80;
-let n = 24;
 
 let sizeToRadius = MyMath.getRemap(2, 0, rMin, rMax);
 
 class Asteroid {
   constructor(hp, ix, pos, size = 0) {
     this.size = size;
-    let n1 = n / (2 ** size);
+    let n1 = maxPointAmount / (2 ** size);
     this.a = ix * n1;
     this.b = (ix + 1) * n1;
     this.hp = hp;
@@ -62,7 +62,7 @@ class Asteroid {
 
 function createAsteroidCoords(size = 0) {
   let res = [];
-  let n1 = n / (2 ** size);
+  let n1 = maxPointAmount / (2 ** size);
   for (let i = 0; i < n1; i++) {
     let phi = (i * 2 * Math.PI) / n1;
     let r = Math.random() * rD + sizeToRadius(size);
@@ -88,10 +88,8 @@ export class AsteroidPool {
       this._coords[0].push(...createAsteroidCoords());
     }
 
-    this.sum = amount * n;
+    this.sum = amount * maxPointAmount;
     this.free_space = 0;
-    // if (sum - free_space == amount) then recreate one big asteroid
-
     this.asteroids = [];
     for (let ix = 0; ix < amount; ix++) {
       // let pos = [Math.random() * width, Math.random() * height];
@@ -104,11 +102,12 @@ export class AsteroidPool {
   }
 
   addNew(size, pos) {
-    let ix = this._coords[size].length * (2 ** size) / n; // FIX
+    let ix = this._coords[size].length * (2 ** size) / maxPointAmount; // FIX
     let a = new Asteroid(3 - size, ix, pos, size);
     this.asteroids.push(a);
 
     this._coords[size].push(...createAsteroidCoords(size));
+    this.free_space -= a.b - a.a;
     for (let i = a.a; i < a.b; i++) {
       this.coords[size].push(MyMath.multiplyMV(a.moveMatrix, this._coords[size][i]));
     }

@@ -4,7 +4,7 @@ import * as Draw from "./draw/draw.js";
 import * as MyMath from "./math.js";
 import { Spaceship } from "./spaceship.js";
 import { StarField } from "./stars.js";
-import { AsteroidPool, rMax, rMin } from "./asteroids.js";
+import { AsteroidPool, maxPointAmount, rMax, rMin } from "./asteroids.js";
 import { BulletPool } from "./bullet.js";
 import { Speedometer } from "./ui/speedometer.js";
 
@@ -133,18 +133,23 @@ ctx.font = "24px Chakra Petch";
         bullets.remove(bullet.id);
         a.hp--;
         if (a.hp == 0) {
-          // add score
-          globalGameState.score += Math.round(50 * (3 - a.size) + 500 * player.speedF ** 2);
           asteroidField.asteroids = asteroidField.asteroids.filter(x => x !== a);
+          asteroidField.free_space += a.b - a.a;
+          for (let i = a.a; i < a.b; i++) {
+            delete asteroidField._coords[a.size][i];
+            delete asteroidField.coords[a.size][i];
+          }
           if (a.size != 2) {
             let p = a.pos;
             asteroidField.addNew(a.size + 1, p);
             asteroidField.addNew(a.size + 1, p);
           }
-          for (let i = a.a; i < a.b; i++) {
-            delete asteroidField._coords[a.size][i];
-            delete asteroidField.coords[a.size][i];
+
+          if (asteroidField.sum - asteroidField.free_space == maxPointAmount) {
+            asteroidField.addNew(0, [0,0]);
           }
+          // add score
+          globalGameState.score += Math.round(50 * (3 - a.size) + 500 * player.speedF ** 2);
         }
       }
     }
