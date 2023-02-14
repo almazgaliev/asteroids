@@ -99,7 +99,7 @@ let globalGameState = {
     "KeyD": false,
     "KeyL": false,
   },
-  prevT: undefined,
+  prevT: NaN,
   score: 0,
 };
 
