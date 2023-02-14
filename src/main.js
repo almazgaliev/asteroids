@@ -8,6 +8,50 @@ import { AsteroidPool, maxPointAmount, rMax, rMin } from "./asteroids.js";
 import { BulletPool } from "./bullet.js";
 import { Speedometer } from "./ui/speedometer.js";
 
+function collided() {
+  for (const a of asteroidField.asteroids) {
+    let r = (2 - a.size) * (rMax - rMin) + rMin;
+    let p = MyMath.magnitude([a.midX - player.midX, a.midY - player.midY]);
+    if (p - r < 0) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function handleBulletCollisions() {
+  for (const bullet of bullets) {
+    for (const a of asteroidField.asteroids) {
+      let r = (2 - a.size) * (rMax - rMin) + rMin;
+      let p = MyMath.magnitude([a.midX - bullet.coords[0], a.midY - bullet.coords[1]]);
+      if (p - r < 0) { // попали
+
+        bullets.remove(bullet.id);
+        a.hp--;
+        if (a.hp == 0) {
+          asteroidField.asteroids = asteroidField.asteroids.filter(x => x !== a);
+          asteroidField.free_space += a.b - a.a;
+          for (let i = a.a; i < a.b; i++) {
+            delete asteroidField._coords[a.size][i];
+            delete asteroidField.coords[a.size][i];
+          }
+          if (a.size != 2) {
+            let p = a.pos;
+            asteroidField.addNew(a.size + 1, p);
+            asteroidField.addNew(a.size + 1, p);
+          }
+
+          if (asteroidField.free_space == maxPointAmount) {
+            asteroidField.addNew(0, [0,0]);
+          }
+          // add score
+          globalGameState.score += Math.round(50 * (3 - a.size) + 500 * player.speedF ** 2);
+          return;
+        }
+      }
+    }
+  }
+}
 
 function createKeyHandlers(gameState) {
   function keyDownListen(event) {
@@ -66,7 +110,6 @@ let speedometer = new Speedometer([globalGameState.width - 40, globalGameState.h
 
 let asteroidField = new AsteroidPool(widthE, heightE, 16);
 
-console.log(asteroidField);
 let bullets = new BulletPool();
 
 let player = new Spaceship([widthE / 2, heightE / 2], 250, 200, 300, 3, true);
@@ -112,48 +155,14 @@ ctx.font = "24px Chakra Petch";
 
 
   // игрок астероид // FIX add normal collisisons
-
-  for (const a of asteroidField.asteroids) {
-    let r = (2 - a.size) * (rMax - rMin) + rMin;
-    let p = MyMath.magnitude([a.midX - player.midX, a.midY - player.midY]);
-    if (p - r < 0) {
-      alert("You Lost");
-      return;
-    }
+  if (collided())
+  {
+    alert("You Lost");
+    return;
   }
 
   // пули астероид
-  for (const bullet of bullets) {
-    for (const a of asteroidField.asteroids) {
-      let r = (2 - a.size) * (rMax - rMin) + rMin;
-      let p = MyMath.magnitude([a.midX - bullet.coords[0], a.midY - bullet.coords[1]]);
-      if (p - r < 0) { // попали
-
-
-        bullets.remove(bullet.id);
-        a.hp--;
-        if (a.hp == 0) {
-          asteroidField.asteroids = asteroidField.asteroids.filter(x => x !== a);
-          asteroidField.free_space += a.b - a.a;
-          for (let i = a.a; i < a.b; i++) {
-            delete asteroidField._coords[a.size][i];
-            delete asteroidField.coords[a.size][i];
-          }
-          if (a.size != 2) {
-            let p = a.pos;
-            asteroidField.addNew(a.size + 1, p);
-            asteroidField.addNew(a.size + 1, p);
-          }
-
-          if (asteroidField.sum - asteroidField.free_space == maxPointAmount) {
-            asteroidField.addNew(0, [0,0]);
-          }
-          // add score
-          globalGameState.score += Math.round(50 * (3 - a.size) + 500 * player.speedF ** 2);
-        }
-      }
-    }
-  }
+  handleBulletCollisions();
 
   // update asteroids
   asteroidField.update(interval, globalGameState);

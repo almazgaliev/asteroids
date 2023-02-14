@@ -87,8 +87,7 @@ export class AsteroidPool {
     for (let ix = 0; ix < amount; ix++) {
       this._coords[0].push(...createAsteroidCoords());
     }
-
-    this.sum = amount * maxPointAmount;
+    
     this.free_space = 0;
     this.asteroids = [];
     for (let ix = 0; ix < amount; ix++) {
