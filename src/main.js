@@ -51,9 +51,6 @@ function handleBulletCollisions() {
       }
     }
   }
-  if (hits.length) {
-    console.log(hits);
-  }
   for (let hit of hits) {
     bullets.remove(hit);
   }
@@ -120,7 +117,7 @@ let asteroidField = new AsteroidPool(widthE, heightE, 16);
 
 let bullets = new BulletPool();
 
-let player = new Spaceship([widthE / 2, heightE / 2], 250, 200, 300, 90, true);
+let player = new Spaceship([widthE / 2, heightE / 2], 250, 200, 300, 3, true);
 
 let starFields = [
   new StarField(50, 0.5, 1.0, widthE, heightE), // 50000 is laggy on ff
@@ -163,10 +160,10 @@ ctx.font = "24px Chakra Petch";
 
 
   // игрок астероид // FIX add normal collisisons
-  // if (collided()) {
-  //   alert("You Lost");
-  //   return;
-  // }
+  if (collided()) {
+    alert("You Lost");
+    return;
+  }
 
   // пули астероид
   handleBulletCollisions();
@@ -210,7 +207,6 @@ ctx.font = "24px Chakra Petch";
   requestAnimationFrame(drawFrame);
 })();
 
-// FIX bullet bug
 // TODO implement settings for keybinds
 // TODO implement switch to always shoot mode
 // TODO implement buffs
