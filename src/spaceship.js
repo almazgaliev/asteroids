@@ -32,7 +32,7 @@ export class Spaceship {
     this.acceleration = acceleration;
     this.rotateSpeed = rotateSpeed;
     this.maxSpeed = maxSpeed;
-    this.bulletSpeed = maxSpeed * 1.5;
+    this.bulletSpeed = maxSpeed * 2.5;
     this.speedRemap = MyMath.getLERP(0.8, 1.6);
     this.currentSpeed = 0;
     this.velocityNormal = [0, -1, 0];
