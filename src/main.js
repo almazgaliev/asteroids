@@ -20,13 +20,13 @@ function collided() {
 }
 
 function handleBulletCollisions() {
+  let hit = -1;
   for (const bullet of bullets) {
     for (const a of asteroidField.asteroids) {
       let r = (2 - a.size) * (rMax - rMin) + rMin;
       let p = MyMath.magnitude([a.midX - bullet.coords[0], a.midY - bullet.coords[1]]);
       if (p - r < 0) { // попали
-
-        bullets.remove(bullet.id);
+        hit = bullet.id;
         a.hp--;
         if (a.hp == 0) {
           asteroidField.asteroids = asteroidField.asteroids.filter(x => x !== a);
@@ -40,15 +40,18 @@ function handleBulletCollisions() {
             asteroidField.addNew(a.size + 1, p);
             asteroidField.addNew(a.size + 1, p);
           }
-
+          
           if (asteroidField.free_space == maxPointAmount) {
             asteroidField.addNew(0, [0,0]);
           }
           // add score
           globalGameState.score += Math.round(50 * (3 - a.size) + 500 * player.speedF ** 2);
-          return;
         }
+        bullets.remove(bullet.id);
+        break;
       }
+      if (hit > 0)
+        break;
     }
   }
 }
@@ -204,8 +207,9 @@ ctx.font = "24px Chakra Petch";
 })();
 
 // FIX bullet bug
-// TODO finish implementing asteroids (генерация новых астероидов)
 // TODO implement settings for keybinds
+// TODO implement switch to always shoot mode
+// TODO implement buffs
 // TODO reimplement using ctx.translate ctx.rotate ctx.scale and use createPattern for stars
 // TODO add aliens
 
