@@ -20,13 +20,13 @@ function collided() {
 }
 
 function handleBulletCollisions() {
-  let hit = -1;
+  let hits = globalGameState.hits;
   for (const bullet of bullets) {
     for (const a of asteroidField.asteroids) {
       let r = (2 - a.size) * (rMax - rMin) + rMin;
       let p = MyMath.magnitude([a.midX - bullet.coords[0], a.midY - bullet.coords[1]]);
       if (p - r < 0) { // попали
-        hit = bullet.id;
+        hits.add(bullet.id);
         a.hp--;
         if (a.hp == 0) {
           asteroidField.asteroids = asteroidField.asteroids.filter(x => x !== a);
@@ -40,20 +40,24 @@ function handleBulletCollisions() {
             asteroidField.addNew(a.size + 1, p);
             asteroidField.addNew(a.size + 1, p);
           }
-          
+
           if (asteroidField.free_space == maxPointAmount) {
-            asteroidField.addNew(0, [0,0]);
+            asteroidField.addNew(0, [0, 0]);
           }
           // add score
           globalGameState.score += Math.round(50 * (3 - a.size) + 500 * player.speedF ** 2);
+          break;
         }
-        bullets.remove(bullet.id);
-        break;
       }
-      if (hit > 0)
-        break;
     }
   }
+  if (hits.length) {
+    console.log(hits);
+  }
+  for (let hit of hits) {
+    bullets.remove(hit);
+  }
+  hits.clear();
 }
 
 function createKeyHandlers(gameState) {
@@ -104,6 +108,7 @@ let globalGameState = {
   },
   prevT: NaN,
   score: 0,
+  hits: new Set,
 };
 
 let widthE = globalGameState.widthE;
@@ -115,7 +120,7 @@ let asteroidField = new AsteroidPool(widthE, heightE, 16);
 
 let bullets = new BulletPool();
 
-let player = new Spaceship([widthE / 2, heightE / 2], 250, 200, 300, 3, true);
+let player = new Spaceship([widthE / 2, heightE / 2], 250, 200, 300, 90, true);
 
 let starFields = [
   new StarField(50, 0.5, 1.0, widthE, heightE), // 50000 is laggy on ff
@@ -158,11 +163,10 @@ ctx.font = "24px Chakra Petch";
 
 
   // игрок астероид // FIX add normal collisisons
-  if (collided())
-  {
-    alert("You Lost");
-    return;
-  }
+  // if (collided()) {
+  //   alert("You Lost");
+  //   return;
+  // }
 
   // пули астероид
   handleBulletCollisions();
