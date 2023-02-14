@@ -61,7 +61,7 @@ export function drawPlayer(ctx, player, gameState) {
   ctx.fillStyle = "#000";
   fillPolygon(ctx, player.body);
 
-  ctx.fillStyle = "#fff";
+  ctx.strokeStyle = "#fff";
   strokePolygon(ctx, player.body);
 
 
@@ -71,12 +71,12 @@ export function drawPlayer(ctx, player, gameState) {
   }
 
 }
-
+// let colors = ["#0f0", "#f00"];
 export function drawAsteroids(ctx, asteroids) {
   for (let a of asteroids.asteroids) {
     ctx.fillStyle = "#000";
     fillPolygon(ctx, asteroids.coords[a.size].slice(a.a, a.b));
-    ctx.fillStyle = "#fff";
+    ctx.strokeStyle = "#fff";
     strokePolygon(ctx, asteroids.coords[a.size].slice(a.a, a.b));
   }
 }
