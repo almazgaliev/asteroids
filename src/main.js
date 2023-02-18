@@ -5,16 +5,29 @@ import { fillCircle } from "./draw/core.js";
 import * as MyMath from "./math.js";
 import { Spaceship } from "./spaceship.js";
 import { StarField } from "./stars.js";
-import { AsteroidPool, rMax, rMin } from "./asteroids.js";
+import { AsteroidPool, sizeToRadius } from "./asteroids.js";
 import { BulletPool } from "./bullet.js";
 import { Speedometer } from "./ui/speedometer.js";
+
+
+function resetProps() {
+  canvas.setAttribute("width", globalGameState.width);
+  canvas.setAttribute("height", globalGameState.height);
+  posX = 20 / 1200 * globalGameState.width;
+  posY = 40 / 800 * globalGameState.height;
+
+  ctx.lineWidth = globalGameState.width / 1200;
+  speedometer.posX = 
+  // ctx.font = "10em Chakra Petch";
+  ctx.font = `${Math.floor(100 / 1200 * globalGameState.width)} Chakra Petch`;
+}
 
 
 function collided() {
   for (const coord of player.body) {
     console.log(coord)
     for (const a of asteroidField.asteroids) {
-      let r = (2 - a.size) * (rMax - rMin) + rMin;
+      let r = sizeToRadius(a.size);
       let p = MyMath.magnitude([a.midX - coord[0], a.midY - coord[1]]);
       if (p - r < 0) {
         return true;
@@ -29,7 +42,7 @@ function handleBulletCollisions(bullets, asteroidField) {
   let shatters = [];
   for (const bullet of bullets) {
     for (let a of asteroidField.asteroids) {
-      let r = (2 - a.size) * (rMax - rMin) + rMin;
+      let r = sizeToRadius(a.size);
       let p = MyMath.magnitude([a.midX - bullet.coords[0], a.midY - bullet.coords[1]]);
       if (p - r < 0) { // попали
         hits.add(bullet.id);
@@ -136,18 +149,10 @@ document.addEventListener("keypress", listeners[0]);
 document.addEventListener("keyup", listeners[1]);
 window.addEventListener("resize", resetProps);
 
+ctx.lineJoin = 'round';
+ctx.lineCap = 'round';
 resetProps();
-function resetProps() {
-  canvas.setAttribute("width", globalGameState.width);
-  canvas.setAttribute("height", globalGameState.height);
-  posX = 20 / 1200 * globalGameState.width;
-  posY = 40 / 800 * globalGameState.height;
-  ctx.lineJoin = 'round';
-  ctx.lineCap = 'round';
-  ctx.lineWidth = 1 / 1200 * globalGameState.width;
-  // ctx.font = "10em Chakra Petch";
-  ctx.font = `${Math.floor(100 / 1200 * globalGameState.width)} Chakra Petch`;
-}
+
 
 let dots0 = [];
 let dots1 = [];

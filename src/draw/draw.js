@@ -57,11 +57,11 @@ export function drawStarField(ctx, starField) {
 }
 
 
-export function drawPlayer(ctx, player, gameState) {
+export function drawPlayer(ctx, player,stroke, gameState) {
   ctx.fillStyle = "#000";
   fillPolygon(ctx, player.body);
 
-  ctx.strokeStyle = "#fff";
+  ctx.strokeStyle = stroke;
   strokePolygon(ctx, player.body);
 
 

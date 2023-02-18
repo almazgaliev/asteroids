@@ -12,6 +12,7 @@ var sizeToRadius = MyMath.getRemap(2, 0, rMin, rMax);
 export {
   rMax,
   rMin,
+  sizeToRadius
 };
 
 
