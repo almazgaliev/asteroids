@@ -71,23 +71,26 @@ export function drawPlayer(ctx, player, gameState) {
   }
 
 }
+
 // let colors = ["#0f0", "#f00"];
 export function drawAsteroids(ctx, asteroids) {
   for (let a of asteroids.asteroids) {
     ctx.fillStyle = "#000";
-    fillPolygon(ctx, asteroids.coords[a.size].slice(a.a, a.b));
     ctx.strokeStyle = "#fff";
-    strokePolygon(ctx, asteroids.coords[a.size].slice(a.a, a.b));
+    fillPolygon(ctx, asteroids.coords[a.size].slice(a.i, a.i + a.n));
+    // ctx.strokeStyle = "#fff";
+    // ctx.strokeStyle = colors[a.hp-1];
+    strokePolygon(ctx, asteroids.coords[a.size].slice(a.i, a.i + a.n));
   }
 }
 
 export function drawBullet(ctx, coords) {
-  ctx.fillStyle = "#fff";
-  fillCircle(ctx, ...coords, 1.5);
+  ctx.fillStyle = "#00f";
+  fillCircle(ctx, ...coords, 5);
 }
 
-export function drawScore(ctx, value) {
+export function drawScore(ctx, value, posX, posY) {
   ctx.strokeStyle = "#fff";
   ctx.fillStyle = "#fff";
-  ctx.fillText(`Score: ${value}`, 20, 40);
+  ctx.fillText(`Score: ${value}`, posX, posY);
 }

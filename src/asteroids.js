@@ -1,34 +1,32 @@
 //@ts-nocheck
 import * as MyMath from "./math.js";
 
-let rMin = 20;
-let rMax = 40;
-let rD = 8;
-let speedMin = 40;
-let speedMax = 80;
-let maxPointAmount = 24;
+var rMin = 20;
+var rMax = 40;
+var rD = 8;
+var speedMin = 40;
+var speedMax = 80;
+var maxPointAmount = 28;
+var sizeToRadius = MyMath.getRemap(2, 0, rMin, rMax);
 
 export {
   rMax,
   rMin,
-  maxPointAmount
 };
 
 
-let sizeToRadius = MyMath.getRemap(2, 0, rMin, rMax);
 
 class Asteroid {
   constructor(hp, ix, pos, size = 0) {
     this.size = size;
-    let n1 = maxPointAmount / (2 ** size);
-    this.a = ix * n1;
-    this.b = (ix + 1) * n1;
+    this.n = maxPointAmount / (2 ** size);
+    this.i = ix;
     this.hp = hp;
-
     let phi = Math.random() * 2 * Math.PI;
     this.currentSpeed = MyMath.multiplyVS([Math.cos(phi), -Math.sin(phi)], Math.random() * speedMax + speedMin);
     this.moveMatrix = MyMath.moveMatrix(pos);
   }
+
   moveMid(interval, gameState) {
     // move mid
     this.midX += this.currentSpeed[0] * interval;
@@ -73,6 +71,8 @@ function createAsteroidCoords(size = 0) {
 
 export class AsteroidPool {
   constructor(width, height, amount) {
+    this.width = width;
+    this.height = height;
     this._coords = [
       [], // big asteroids
       [], // medium asteroids
@@ -87,35 +87,66 @@ export class AsteroidPool {
     for (let ix = 0; ix < amount; ix++) {
       this._coords[0].push(...createAsteroidCoords());
     }
-    
-    this.free_space = 0;
+
+    this.free_space = { sum: 0, indexes: [[], [], []] };
     this.asteroids = [];
     for (let ix = 0; ix < amount; ix++) {
       // let pos = [Math.random() * width, Math.random() * height];
-      let a = new Asteroid(3, ix, [0, 0]);
+      let a = new Asteroid(3, ix * maxPointAmount, [0, 0]);
       this.asteroids.push(a);
-      for (let i = a.a; i < a.b; i++) {
+      for (let i = a.i; i < a.i + a.n; i++) {
         this.coords[0].push(MyMath.multiplyMV(a.moveMatrix, this._coords[0][i]));
       }
     }
   }
 
   addNew(size, pos) {
-    let ix = this._coords[size].length * (2 ** size) / maxPointAmount; // FIX
+    let start = this.free_space.indexes[size]?.pop();
+    let coords = createAsteroidCoords(size);
+    let ix;
+    if (start === undefined) {
+      ix = this._coords[size].length;
+      this._coords[size].push(...coords);
+    }
+    else {
+      ix = start;
+      for (let i = start, j = 0; i < start + maxPointAmount / (2 ** size); i++, j++) {
+        this._coords[size][i] = coords[j];
+      }
+    }
     let a = new Asteroid(3 - size, ix, pos, size);
+    
+    this.free_space.sum -= a.n;
     this.asteroids.push(a);
 
-    this._coords[size].push(...createAsteroidCoords(size));
-    this.free_space -= a.b - a.a;
-    for (let i = a.a; i < a.b; i++) {
-      this.coords[size].push(MyMath.multiplyMV(a.moveMatrix, this._coords[size][i]));
+  }
+
+  shatter(a) {
+    if (this.free_space.indexes[a.size].includes(a.i))
+      debugger;
+    this.free_space.indexes[a.size].push(a.i);
+    this.free_space.sum += a.n;
+    for (let i = a.i; i < a.i + a.n; i++) {
+      delete this._coords[a.size][i];
+    }
+
+    if (a.size != 2) {
+      let p = a.pos;
+      this.addNew(a.size + 1, p);
+      this.addNew(a.size + 1, p);
+    }
+
+    if (this.free_space.sum == maxPointAmount) {
+      // let pos = [Math.random() * this.width, Math.random() * this.height];
+      // this.addNew(0, pos, this.free_space.indexes[0]);
+      this.addNew(0, [0, 0]);
     }
   }
 
   update(interval, gameState) {
     for (const a of this.asteroids) {
       a.moveMid(interval, gameState);
-      for (let i = a.a; i < a.b; i++) {
+      for (let i = a.i; i < a.i + a.n; i++) {
         this.coords[a.size][i] = MyMath.multiplyMV(a.moveMatrix, this._coords[a.size][i]);
       }
     }

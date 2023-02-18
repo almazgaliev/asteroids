@@ -1,56 +1,37 @@
 // @ts-nocheck
 
 import * as Draw from "./draw/draw.js";
+import { fillCircle } from "./draw/core.js";
 import * as MyMath from "./math.js";
 import { Spaceship } from "./spaceship.js";
 import { StarField } from "./stars.js";
-import { AsteroidPool, maxPointAmount, rMax, rMin } from "./asteroids.js";
+import { AsteroidPool, rMax, rMin } from "./asteroids.js";
 import { BulletPool } from "./bullet.js";
 import { Speedometer } from "./ui/speedometer.js";
 
-function collided() {
-  for (const a of asteroidField.asteroids) {
-    let r = (2 - a.size) * (rMax - rMin) + rMin;
-    let p = MyMath.magnitude([a.midX - player.midX, a.midY - player.midY]);
-    if (p - r < 0) {
-      return true;
-    }
-  }
-  return false;
-}
 
-function handleBulletCollisions() {
+
+function handleBulletCollisions(bullets, asteroidField) {
   let hits = globalGameState.hits;
+  let shatters = [];
   for (const bullet of bullets) {
-    for (const a of asteroidField.asteroids) {
+    for (let a of asteroidField.asteroids) {
       let r = (2 - a.size) * (rMax - rMin) + rMin;
       let p = MyMath.magnitude([a.midX - bullet.coords[0], a.midY - bullet.coords[1]]);
       if (p - r < 0) { // попали
         hits.add(bullet.id);
         a.hp--;
         if (a.hp == 0) {
-          asteroidField.asteroids = asteroidField.asteroids.filter(x => x !== a);
-          asteroidField.free_space += a.b - a.a;
-          for (let i = a.a; i < a.b; i++) {
-            delete asteroidField._coords[a.size][i];
-            delete asteroidField.coords[a.size][i];
-          }
-          if (a.size != 2) {
-            let p = a.pos;
-            asteroidField.addNew(a.size + 1, p);
-            asteroidField.addNew(a.size + 1, p);
-          }
-
-          if (asteroidField.free_space == maxPointAmount) {
-            asteroidField.addNew(0, [0, 0]);
-          }
+          asteroidField.shatter(a);
+          shatters.push(a);
           // add score
           globalGameState.score += Math.round(50 * (3 - a.size) + 500 * player.speedF ** 2);
-          break;
         }
       }
     }
   }
+  asteroidField.asteroids = asteroidField.asteroids.filter(x => !shatters.includes(x));
+
   for (let hit of hits) {
     bullets.remove(hit);
   }
@@ -93,8 +74,8 @@ function createKeyHandlers(gameState) {
 let globalGameState = {
   outBX: 60, // костыль чтобы не дублировать корабль при вылете за край
   outBY: 60,
-  width: document.body.clientWidth,
-  height: 800,
+  get width() { return document.body.clientWidth; }, // FIX
+  get height() { return 800; },
   get widthE() { return this.width + this.outBX; },
   get heightE() { return this.height + this.outBY; },
   keys: {
@@ -120,25 +101,43 @@ let bullets = new BulletPool();
 let player = new Spaceship([widthE / 2, heightE / 2], 250, 200, 300, 3, true);
 
 let starFields = [
-  new StarField(50, 0.5, 1.0, widthE, heightE), // 50000 is laggy on ff
-  new StarField(150, 0.4, 0.8, widthE, heightE),
-  new StarField(300, 0.3, 0.6, widthE, heightE)
+  new StarField(25, 0.5, 1.0, widthE, heightE), // 50000 is laggy on ff
+  new StarField(70, 0.4, 0.8, widthE, heightE),
+  new StarField(200, 0.3, 0.6, widthE, heightE)
 ];
 
 let canvas = document.getElementById("main-canvas");
+
 canvas.setAttribute("width", globalGameState.width);
 canvas.setAttribute("height", globalGameState.height);
 
+// FIX
+
+
 let ctx = canvas.getContext("2d");
+let posX = 0;
+let posY = 0;
 
 let listeners = createKeyHandlers(globalGameState);
 document.addEventListener("keypress", listeners[0]);
 document.addEventListener("keyup", listeners[1]);
+window.addEventListener("resize", resetProps);
 
-ctx.lineJoin = 'round';
-ctx.lineCap = 'round';
-ctx.lineWidth = 1.5;
-ctx.font = "24px Chakra Petch";
+resetProps();
+function resetProps() {
+  canvas.setAttribute("width", globalGameState.width);
+  canvas.setAttribute("height", globalGameState.height);
+  posX = 20 / 1200 * globalGameState.width;
+  posY = 40 / 800 * globalGameState.height;
+  ctx.lineJoin = 'round';
+  ctx.lineCap = 'round';
+  ctx.lineWidth = 1 / 1200 * globalGameState.width;
+  // ctx.font = "10em Chakra Petch";
+  ctx.font = `${Math.floor(100 / 1200 * globalGameState.width)} Chakra Petch`;
+}
+
+let dots0 = [];
+let dots1 = [];
 
 (function drawFrame(timestamp = 0) {
   // интервал между кадрами в секундах
@@ -154,19 +153,22 @@ ctx.font = "24px Chakra Petch";
     player.accelerate(interval);
   if (globalGameState.keys["KeyL"]) {
     let a = player.shoot();
-    if (a !== undefined)
+    if (a !== undefined) {
+      dots0.unshift([...a.coord]);
+      dots0.splice(10);
       bullets.push(a.coord, a.vector);
+    }
   }
 
 
   // игрок астероид // FIX add normal collisisons
-  if (collided()) {
-    alert("You Lost");
-    return;
-  }
+  // if (collided()) {
+  //   alert("You Lost");
+  //   return;
+  // }
 
   // пули астероид
-  handleBulletCollisions();
+  handleBulletCollisions(bullets, asteroidField);
 
   // update asteroids
   asteroidField.update(interval, globalGameState);
@@ -194,26 +196,29 @@ ctx.font = "24px Chakra Petch";
 
   Draw.drawAsteroids(ctx, asteroidField);
 
+  for (const dot of dots0) {
+    ctx.fillStyle = "#f00";
+    fillCircle(ctx, ...dot, 3);
+  }
+
+  for (const dot of dots1) {
+    ctx.fillStyle = "#0f0";
+    fillCircle(ctx, ...dot, 3);
+  }
+
   for (const bullet of bullets) {
+    dots1.unshift([...bullet.coords]);
+    dots1.splice(10);
     Draw.drawBullet(ctx, bullet.coords);
   }
+
+
 
   Draw.drawPlayer(ctx, player, globalGameState);
 
   Draw.drawSpeedometer(ctx, player.speedF, speedometer);
 
-  Draw.drawScore(ctx, globalGameState.score);
+  Draw.drawScore(ctx, globalGameState.score, posX, posY);
 
   requestAnimationFrame(drawFrame);
 })();
-
-// TODO implement settings for keybinds
-// TODO implement switch to always shoot mode
-// TODO implement buffs
-// TODO reimplement using ctx.translate ctx.rotate ctx.scale and use createPattern for stars
-// TODO add aliens
-
-
-// улучшение фпс
-// двойная буферизация
-// пул обьектов (переиспользование)

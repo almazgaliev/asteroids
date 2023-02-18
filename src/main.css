@@ -10,10 +10,13 @@ body {
 
 #title-wrapper {
   display: flex;
+  height: 10%;
   justify-content: center
 }
 
 #main-canvas {
+  width: 100%;
+  height: 90%;
   border: 1.5px solid white;
   border-radius: 10px;
 }
