@@ -8,19 +8,16 @@ export class BulletPool {
     this.positions = [];
     this.vectors = [];
     // this.emptys
-    this.amount = 0;
   }
 
   push(coord, vector) {
     this.positions.push(coord);
     this.vectors.push(vector);
-    this.amount++;
   }
 
   remove(id) {
     this.positions.splice(id, 1);
     this.vectors.splice(id, 1);
-    this.amount--;
   }
 
   update(interval, gameState) {
@@ -39,7 +36,7 @@ export class BulletPool {
     let i = 0;
     return {
       next: () => {
-        if (i < this.amount) {
+        if (i < this.positions.length) {
           return { done: false, value: { id: i, coords: this.positions[i++] } };
         }
         else
