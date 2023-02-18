@@ -10,6 +10,19 @@ import { BulletPool } from "./bullet.js";
 import { Speedometer } from "./ui/speedometer.js";
 
 
+function collided() {
+  for (const coord of player.body) {
+    console.log(coord)
+    for (const a of asteroidField.asteroids) {
+      let r = (2 - a.size) * (rMax - rMin) + rMin;
+      let p = MyMath.magnitude([a.midX - coord[0], a.midY - coord[1]]);
+      if (p - r < 0) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
 
 function handleBulletCollisions(bullets, asteroidField) {
   let hits = globalGameState.hits;
@@ -161,10 +174,10 @@ let dots1 = [];
   }
 
 
-  // игрок астероид // FIX add normal collisisons
+  // игрок астероид
   // if (collided()) {
-  //   alert("You Lost");
-  //   return;
+  // alert("You Lost");
+  // return;
   // }
 
   // пули астероид
@@ -214,7 +227,7 @@ let dots1 = [];
 
 
 
-  Draw.drawPlayer(ctx, player, globalGameState);
+  Draw.drawPlayer(ctx, player, collided() ? "#f00" : "#fff", globalGameState);
 
   Draw.drawSpeedometer(ctx, player.speedF, speedometer);
 
